@@ -8,19 +8,6 @@ import traceback
 import config
 
 
-def get_MD5_zip_packs(zipPath):
-    current_md5 = None
-    if systemType == 'Darwin':
-        current_md5 = str(os.popen('md5 ' + zipPath).read().split()[3])
-    elif systemType == 'Linux':
-        current_md5 = str(os.popen('md5sum ' + zipPath).read().split()[0])
-    elif systemType == 'Windows':
-        current_md5 = ''
-    else:
-        current_md5 = None
-    return current_md5
-
-
 def read_MD5_list(path, filename):
     try:
         global md5_dictionary
@@ -92,7 +79,7 @@ def unzip_packs_to_log_directory(local_log_directory):
                 md5_value = md5_dictionary[filename]
 
                 # get md5 value of local zip pack
-                current_md5 = get_MD5_zip_packs(filename)
+                current_md5 = config.get_MD5_zip_packs(filename)
 
                 if current_md5 != md5_value:
                     # md5 value is different, skip current file, process next file
@@ -115,6 +102,21 @@ def unzip_packs_to_log_directory(local_log_directory):
     # while (1):
     #     print 'unzip_packs_to_log_directory'
     #     time.sleep(1.5)
+
+
+class read_md5_thread(threading.Thread):
+    def __init__(self, args):
+        threading.Thread.__init__(self)
+        self.args = args
+
+    def run(self):
+        while (True):
+            read_MD5_list(self.args[0], self.args[1])
+            for i in md5_dictionary:
+                print i, md5_dictionary[i], len(md5_dictionary)
+                break
+
+            time.sleep(2)
 
 
 class pull_thread(threading.Thread):
@@ -141,9 +143,6 @@ class unzip_thread(threading.Thread):
 
 if __name__ == '__main__':
     try:
-        global systemType
-        systemType = config.getSystemType()
-
         # local_log_directory = config.LOCAL_LOG_PATH
         #
         # p = pull_thread(args=local_log_directory)
@@ -152,10 +151,13 @@ if __name__ == '__main__':
         # p.start()
         # u.start()
 
-        read_MD5_list('./log/tar/', 'md5_set')
+        r = read_md5_thread(args=('./log/tar/', config.MD5_FILE))
+        r.start()
 
-        for i in md5_dictionary:
-            print i, md5_dictionary[i]
+        # read_MD5_list('./log/tar/', 'md5_set')
+        #
+        # for i in md5_dictionary:
+        #     print i, md5_dictionary[i]
 
     except Exception as e:
 

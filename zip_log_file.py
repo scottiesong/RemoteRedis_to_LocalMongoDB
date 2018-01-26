@@ -3,20 +3,13 @@
 
 import os
 import time
-# import zipfile
 import traceback
-import platform
 import config
 
 
 def getFileNameTuple(filename):
     # split the file_name and file_ext
     return os.path.splitext(filename)
-
-
-def getSystemType():
-    # return the type of system
-    return platform.system()
 
 
 if __name__ == '__main__':
@@ -28,8 +21,6 @@ if __name__ == '__main__':
     md5_dictionary = {}
 
     try:
-        system_name = getSystemType()
-
         # create tar pack directory
         if os.path.exists(tarDirectory) == False:
             os.mkdir(tarDirectory)
@@ -44,41 +35,26 @@ if __name__ == '__main__':
                     for filename in filenames:  # 输出文件信息
                         nameTuple = getFileNameTuple(filename)
                         if nameTuple[1] == '.log':
-                            # 压缩此文件
+                            # get log file name without ext
                             log_name_no_ext = nameTuple[0]
+                            # create zip file name with ext(.tar.gz)
                             zip_pack_file_name = log_name_no_ext + '.tar.gz'
-
-                            '''
-                            # compress log file by zipfile libs.
-                            z = zipfile.ZipFile(log_name_no_ext + '.zip', 'w')
-                            z.write(filename, compress_type=zipfile.ZIP_DEFLATED)
-                            z.close()
-
-                            os.remove(os.path.join(parent, filename))
-                            '''
-
+                            # create compress command line
                             compress_cmd_line = 'tar -czf ' + './tar/' + zip_pack_file_name + ' ' + filename
+                            # run compress
                             r = os.system(compress_cmd_line)
                             if r != 0:
+                                # compress failed, next file
                                 continue
                             else:
                                 # compress success, delete the log file
                                 # os.system('rm -rf ' + filename)
+
                                 # get the md5 value of the zip pack file
-                                if system_name == 'Darwin':
-                                    current_md5 = str(
-                                        os.popen('md5 ' + './tar/' + zip_pack_file_name).read().split()[3])
-                                elif system_name == 'Linux':
-                                    current_md5 = str(
-                                        os.popen('md5sum ' + './tar/' + zip_pack_file_name).read().split()[0])
-                                else:
+                                current_md5 = config.get_MD5_zip_packs('./tar/' + zip_pack_file_name)
+                                if current_md5 == '':
                                     continue
-
-                                # md5_string = ''
-                                # md5_string = {zip_pack_file_name: current_md5}
-                                # md5_set_file.write(str(md5_string) + '\n')
-                                # md5_set_file.flush()
-
+                                # md5 value add to dictionary
                                 md5_dictionary[zip_pack_file_name] = current_md5
 
                                 # time.sleep(0.1)
