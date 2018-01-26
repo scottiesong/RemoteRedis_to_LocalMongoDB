@@ -2,6 +2,7 @@
 redis in tencent cloud, mongodb in local, transform redis to mongo, by python 2.7.
 
 Files' Description:
+
   count_lines.py: calculate lines about whole log files in localhost.
   eating_data.py: lpop the redis data in development.
 
