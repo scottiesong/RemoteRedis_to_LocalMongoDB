@@ -88,7 +88,15 @@ def unzip_packs_to_log_directory(local_log_directory):
             ext_name = os.path.splitext(os.path.splitext(filename)[0])[1] + os.path.splitext(filename)[1]
             if ext_name == '.tar.gz':
 
+                # get source md5 value
                 md5_value = md5_dictionary[filename]
+
+                # get md5 value of local zip pack
+                current_md5 = get_MD5_zip_packs(filename)
+
+                if current_md5 != md5_value:
+                    # md5 value is different, skip current file, process next file
+                    continue
 
                 # command success, and unzip all zip packs
                 unzip_command_line = 'tar -xzf ' + filename + ' -C ' + local_log_directory
